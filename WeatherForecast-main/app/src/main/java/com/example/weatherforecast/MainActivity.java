@@ -1,5 +1,6 @@
 package com.example.weatherforecast;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -8,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import com.example.weatherforecast.data.WeatherDb;
 import com.example.weatherforecast.data.WeatherRepository;
@@ -24,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
     // view refs
     private TextView tvCity, tvUpdatedAt, tvTemp, tvCondition, tvFeelsLike, tvHumidity, tvWind, tvVisibility;
+    private BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +49,12 @@ public class MainActivity extends AppCompatActivity {
         tvHumidity = findViewById(R.id.tvHumidity);
         tvWind = findViewById(R.id.tvWind);
         tvVisibility = findViewById(R.id.tvVisibility);
+        bottomNav = findViewById(R.id.bottomNav);
 
         repo = new WeatherRepository(this);
+        
+        // Setup bottom navigation
+        setupBottomNavigation();
 
         // Tải & hiển thị dữ liệu
         WeatherDb.get(this).io().execute(() -> {
@@ -57,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
                 );
                 repo.addFavorite(locId);
 
-                // (Nếu đã thêm OpenMeteoClient, gọi API; nếu chưa thì comment dòng dưới)
-                // new OpenMeteoClient().fetchAndStore(10.776, 106.700, "auto", locId, repo);
+                // Gọi API để lấy dữ liệu hourly
+                new OpenMeteoClient().fetchAndStore(10.776, 106.700, "auto", locId, repo);
 
                 var cards = repo.getFavoritesCards();
                 runOnUiThread(() -> {
@@ -78,6 +86,32 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 android.util.Log.e("APP", "Init error", e);
             }
+        });
+    }
+
+    private void setupBottomNavigation() {
+        bottomNav.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.nav_hourly) {
+                Intent intent = new Intent(this, HourlyForecastActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (itemId == R.id.nav_now) {
+                // Already on current screen
+                return true;
+            } else if (itemId == R.id.nav_daily) {
+                // TODO: Implement Daily Forecast Activity
+                return true;
+            } else if (itemId == R.id.nav_fav) {
+                // TODO: Implement Favorites Activity
+                return true;
+            } else if (itemId == R.id.nav_settings) {
+                // TODO: Implement Settings Activity
+                return true;
+            }
+            
+            return false;
         });
     }
 
